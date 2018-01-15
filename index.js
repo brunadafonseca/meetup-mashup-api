@@ -7,11 +7,8 @@ var io = require('socket.io')(server)
 var Meetup = require('meetup')
 var mup = new Meetup()
 
-io.on('connection', socket => {
-  console.log('got connection')
-})
-
 let topicsCounter = {}
+let topics = []
 
 mup.stream('/2/rsvps', stream => {
   stream
@@ -40,7 +37,7 @@ mup.stream('/2/rsvps', stream => {
           }
         })
 
-        const topics = arrayOfTopics.slice(0, 10).map(topicNames => {
+        topics = arrayOfTopics.slice(0, 10).map(topicNames => {
           return { topic: topicNames, count: topicsCounter[topicNames] }
         })
 
@@ -54,4 +51,8 @@ mup.stream('/2/rsvps', stream => {
     }).on("error", e => {
       console.log("error! " + e)
     })
+})
+
+io.on('connection', socket => {
+  socket.emit('action', { type: 'UPDATE_TOPICS', payload: topics })
 })
